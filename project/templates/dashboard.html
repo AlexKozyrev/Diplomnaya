@@ -1,0 +1,112 @@
+<!-- templates/dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Dashboard</h1>
+
+    <h2>Cars</h2>
+    <form method="GET">
+        {{ car_filter.form.as_p }}
+        <button type="submit">Filter</button>
+    </form>
+    <table>
+        <tr>
+            <th>Factory Number</th>
+            <th>Tech Model</th>
+            <th>Engine Model</th>
+            <th>Engine Number</th>
+            <th>Transmission Model</th>
+            <th>Transmission Number</th>
+            <th>Drive Axle Model</th>
+            <th>Drive Axle Number</th>
+            <th>Steering Axle Model</th>
+            <th>Steering Axle Number</th>
+            <th>Supply Contract</th>
+            <th>Shipping Date</th>
+        </tr>
+        {% for car in cars %}
+        <tr>
+            <td>{{ car.factory_number }}</td>
+            <td>{{ car.tech_model.name }}</td>
+            <td>{{ car.engine_model.name }}</td>
+            <td>{{ car.engine_number }}</td>
+            <td>{{ car.transmission_model.name }}</td>
+            <td>{{ car.transmission_number }}</td>
+            <td>{{ car.drive_axle_model.name }}</td>
+            <td>{{ car.drive_axle_number }}</td>
+            <td>{{ car.steering_axle_model.name }}</td>
+            <td>{{ car.steering_axle_number }}</td>
+            <td>{{ car.supply_contract }}</td>
+            <td>{{ car.shipping_date }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Maintenances</h2>
+    <form method="GET">
+        {{ maintenance_filter.form.as_p }}
+        <button type="submit">Filter</button>
+    </form>
+    <table>
+        <tr>
+            <th>Maintenance Type</th>
+            <th>Date</th>
+            <th>Operating Time</th>
+            <th>Order Number</th>
+            <th>Order Date</th>
+            <th>Maintenance Organization</th>
+            <th>Car Factory Number</th>
+            <th>Service Company</th>
+        </tr>
+        {% for maintenance in maintenances %}
+        <tr>
+            <td>{{ maintenance.maintenance_type.name }}</td>
+            <td>{{ maintenance.date }}</td>
+            <td>{{ maintenance.operating_time }}</td>
+            <td>{{ maintenance.order_number }}</td>
+            <td>{{ maintenance.order_date }}</td>
+            <td>{{ maintenance.maintenance_organization.name }}</td>
+            <td>{{ maintenance.car.factory_number }}</td>
+            <td>{{ maintenance.service_company.username }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Complaints</h2>
+    <form method="GET">
+        {{ complaint_filter.form.as_p }}
+        <button type="submit">Filter</button>
+    </form>
+    <table>
+        <tr>
+            <th>Failure Date</th>
+            <th>Operating Time</th>
+            <th>Failure Node</th>
+            <th>Failure Description</th>
+            <th>Recovery Method</th>
+            <th>Parts Used</th>
+            <th>Recovery Date</th>
+            <th>Downtime</th>
+            <th>Car Factory Number</th>
+            <th>Service Company</th>
+        </tr>
+        {% for complaint in complaints %}
+        <tr>
+            <td>{{ complaint.failure_date }}</td>
+            <td>{{ complaint.operating_time }}</td>
+            <td>{{ complaint.failure_node.name }}</td>
+            <td>{{ complaint.failure_description }}</td>
+            <td>{{ complaint.recovery_method.name }}</td>
+            <td>{{ complaint.parts_used }}</td>
+            <td>{{ complaint.recovery_date }}</td>
+            <td>{{ complaint.downtime }}</td>
+            <td>{{ complaint.car.factory_number }}</td>
+            <td>{{ complaint.service_company.username }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

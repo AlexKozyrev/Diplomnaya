@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.flatpages',
+    'allauth',
     'cars',
 ]
 
@@ -66,6 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
             ],
         },
     },
@@ -127,3 +129,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "static"
 ]
 LOGIN_REDIRECT_URL = "/"
+
+# settings.py
+ACCOUNT_ADAPTER = 'project.adapters.NoNewUsersAccountAdapter'
