@@ -1,61 +1,166 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
-from .models import Car, Maintenance, Complaint
-from .filters import CarFilter, MaintenanceFilter, ComplaintFilter
+from django.contrib.auth.decorators import login_required
+from .models import Car, Maintenance, Complaint, Reference
+from django.db.models import F
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import Http404
 
 
-@login_required
-def dashboard(request):
-    user = request.user
-    cars = Car.objects.none()
-    maintenances = Maintenance.objects.none()
-    complaints = Complaint.objects.none()
-
-    if user.groups.filter(name='Client').exists():
-        cars = Car.objects.filter(client=user)
-        maintenances = Maintenance.objects.filter(car__client=user)
-        complaints = Complaint.objects.filter(car__client=user)
-    elif user.groups.filter(name='Service Organization').exists():
-        cars = Car.objects.filter(service_company=user)
-        maintenances = Maintenance.objects.filter(service_company=user)
-        complaints = Complaint.objects.filter(service_company=user)
-    elif user.groups.filter(name='Manager').exists():
-        cars = Car.objects.all()
-        maintenances = Maintenance.objects.all()
-        complaints = Complaint.objects.all()
-
-    car_filter = CarFilter(request.GET, queryset=cars)
-    maintenance_filter = MaintenanceFilter(request.GET, queryset=maintenances)
-    complaint_filter = ComplaintFilter(request.GET, queryset=complaints)
-
-    context = {
-        'cars': car_filter.qs,
-        'maintenances': maintenance_filter.qs,
-        'complaints': complaint_filter.qs,
-        'car_filter': car_filter,
-        'maintenance_filter': maintenance_filter,
-        'complaint_filter': complaint_filter,
-    }
-
-    return render(request, 'dashboard.html', context)
+def home(request):
+    if request.user.is_authenticated:
+        # Логика для авторизованных пользователей
+        return render(request, 'authenticated_home.html')
+    else:
+        # Логика для неавторизованных пользователей
+        return render(request, 'home.html')
 
 
 def search_car(request):
+    query = request.GET.get('query', '')
+    if query:
+        cars = Car.objects.filter(factory_number__icontains=query)[:10]
+    else:
+        cars = Car.objects.all()[:10]
+    return render(request, 'search_results.html', {'cars': cars})
+
+
+def car_detail(request, car_id):
+    try:
+        car = get_object_or_404(Car, id=car_id)
+        if not request.user.is_staff:
+            if request.user.groups.filter(name='Клиент').exists() and car.client != request.user:
+                raise Http404
+            if request.user.groups.filter(name='Сервисная компания').exists() and car.service_company != request.user:
+                raise Http404
+        maintenances = Maintenance.objects.filter(car=car)
+        complaints = Complaint.objects.filter(car=car)
+        return render(request, 'car_detail.html', {
+            'car': car,
+            'maintenances': maintenances,
+            'complaints': complaints
+        })
+    except Http404:
+        return render(request, '404.html', status=404)
+
+
+@login_required(login_url='home')
+def authenticated_home(request):
+    user = request.user
+    if user.groups.filter(name='Клиент').exists():
+        cars = Car.objects.filter(client=user)
+    elif user.groups.filter(name='Сервисная компания').exists():
+        cars = Car.objects.filter(service_company=user)
+    elif user.is_staff:
+        cars = Car.objects.all()
+    else:
+        cars = Car.objects.none()
+    maintenances = Maintenance.objects.filter(car__in=cars).order_by('-date')
+    complaints = Complaint.objects.filter(car__in=cars).order_by('-failure_date')
+    # Фильтрация
+    tech_model = request.GET.get('tech_model')
+    engine_model = request.GET.get('engine_model')
+    transmission_model = request.GET.get('transmission_model')
+    drive_axle_model = request.GET.get('drive_axle_model')
+    steering_axle_model = request.GET.get('steering_axle_model')
+    active_tab = request.GET.get('active_tab', 'general')
+
+    # Apply filtering based on the active tab
+    if active_tab == 'general':
+        # Filtering for the 'general' tab (cars)
+        if tech_model:
+            cars = cars.filter(tech_model__name__icontains=tech_model)
+        if engine_model:
+            cars = cars.filter(engine_model__name__icontains=engine_model)
+        if transmission_model:
+            cars = cars.filter(transmission_model__name__icontains=transmission_model)
+        if drive_axle_model:
+            cars = cars.filter(drive_axle_model__name__icontains=drive_axle_model)
+        if steering_axle_model:
+            cars = cars.filter(steering_axle_model__name__icontains=steering_axle_model)
+    elif active_tab == 'maintenance':
+        # Filtering for the 'maintenance' tab (maintenances)
+        if tech_model:
+            maintenances = maintenances.filter(car__tech_model__name__icontains=tech_model)
+        if engine_model:
+            maintenances = maintenances.filter(car__engine_model__name__icontains=engine_model)
+        # ... other filters for the 'maintenance' tab ...
+    elif active_tab == 'complaints':
+        # Filtering for the 'complaints' tab (complaints)
+        if tech_model:
+            complaints = complaints.filter(car__tech_model__name__icontains=tech_model)
+        if engine_model:
+            complaints = complaints.filter(car__engine_model__name__icontains=engine_model)
+        # ... other filters for the 'complaints' tab ...
+
+    # Сортировка
+    sort_by = request.GET.get('sort', 'shipping_date')
+    if sort_by.startswith('-'):
+        cars = cars.order_by(F(sort_by[1:]).desc(nulls_last=True))
+    else:
+        cars = cars.order_by(F(sort_by).asc(nulls_last=True))
+
+    # Пагинация
+    paginator = Paginator(cars, 10)  # 10 машин на страницу
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'authenticated_home.html', {
+        'page_obj': page_obj,
+        'maintenances': maintenances,
+        'complaints': complaints,
+        'active_tab': active_tab
+    })
+
+
+def reference_description(request):
+    category = request.GET.get('category')
+    name = request.GET.get('name')
+    reference = Reference.objects.filter(category=category, name=name).first()
+    if reference:
+        return JsonResponse({'description': reference.description})
+    return JsonResponse({'description': 'Описание не найдено'})
+
+
+def login_view(request):
     if request.method == 'POST':
-        factory_number = request.POST.get('factory_number')
-        try:
-            car = Car.objects.get(factory_number=factory_number)
-            return render(request, 'car_detail.html', {'car': car})
-        except Car.DoesNotExist:
-            return render(request, 'car_not_found.html')
-    return render(request, 'search_car.html')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            # Можно добавить сообщение об успешном входе
+            messages.success(request, f"Вы вошли как {username}.")
+            return redirect('authenticated_home')  # Предполагается, что 'home' - это URL после входа
+        else:
+            # Можно добавить сообщение об ошибке
+            messages.error(request, "Неверное имя пользователя или пароль.")
+    return render(request, 'base.html')
 
 
-def car_detail_public(request, pk):
-    car = get_object_or_404(Car, pk=pk)
-    # Возвращаем только поля пп.1-10
-    public_fields = ['field1', 'field2', 'field3', 'field4', 'field5', 'field6', 'field7', 'field8', 'field9',
-                     'field10']
-    car_data = {field: getattr(car, field) for field in public_fields}
-    return JsonResponse(car_data)
+def logout_view(request):
+    # Выполняем выход пользователя
+    logout(request)
+
+    # Добавляем сообщение об успешном выходе
+    messages.success(request, "Вы успешно вышли из системы.")
+
+    # Перенаправляем на домашнюю страницу
+    return redirect('home')
+
+
+def maintenance_detail(request, car_id, maintenance_id):
+    maintenance = get_object_or_404(Maintenance, id=maintenance_id, car_id=car_id)
+    return render(request, 'to_details.html', {'maintenance': maintenance})
+
+
+def complaint_detail(request, car_id, complaint_id):
+    complaint = get_object_or_404(Complaint, id=complaint_id, car_id=car_id)
+    return render(request, 'complaint_details.html', {'complaint': complaint})
+
+
+def reference_detail(request, category, name):
+    reference = get_object_or_404(Reference, category=category, name=name)
+    return render(request, 'reference_details.html', {'reference': reference})

@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Проверьте комплектацию вашей техники Силант</h2>
+    <form action="{% url 'search_car' %}" method="get">
+        <input type="text" name="query" placeholder="Введите заводской номер">
+        <button type="submit">Поиск</button>
+    </form>
+{% endblock %}

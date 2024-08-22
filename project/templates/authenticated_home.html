@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Добро пожаловать, {{ user.username }}!</h2>
+
+    <div id="tabs">
+        <button class="tab-button" onclick="openTab('general')">Общая информация</button>
+        <button class="tab-button" onclick="openTab('maintenance')">ТО</button>
+        <button class="tab-button" onclick="openTab('complaints')">Рекламации</button>
+    </div>
+    <form method="get">
+    <input type="hidden" name="active_tab" id="active_tab" value="general">
+    </form>
+
+
+    <div id="general" class="tab-content">
+        <h3>Общая информация о машинах</h3>
+        <table>
+            <form method="get">
+            <input type="text" name="tech_model" placeholder="Модель техники">
+            <input type="text" name="engine_model" placeholder="Модель двигателя">
+            <input type="text" name="transmission_model" placeholder="Модель трансмиссии">
+            <input type="text" name="drive_axle_model" placeholder="Модель ведущего моста">
+            <input type="text" name="steering_axle_model" placeholder="Модель управляемого моста">
+            <button type="submit">Фильтровать</button>
+            </form>
+            <thead>
+                <tr>
+                    <th><a href="?sort=factory_number">Зав. № машины</a></th>
+                    <th><a href="?sort=tech_model">Модель техники</a></th>
+                    <th><a href="?sort=engine_model">Модель двигателя</a></th>
+                    <th><a href="?sort=transmission_model">Модель трансмиссии</a></th>
+                    <th><a href="?sort=drive_axle_model">Модель ведущего моста</a></th>
+                    <th><a href="?sort=steering_axle_model">Модель управляемого моста</a></th>
+                    <th><a href="?sort=shipping_date">Дата отгрузки</a></th>
+                    <th><a href="?sort=client">Клиент</a></th>
+                    <th><a href="?sort=service_company">Сервисная компания</a></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for car in page_obj %}
+                    <tr onclick="location.href='{% url 'car_detail' car.id %}'">
+                        <td>{{ car.factory_number }}</td>
+                        <td>{{ car.tech_model }}</td>
+                        <td>{{ car.engine_model }}</td>
+                        <td>{{ car.transmission_model }}</td>
+                        <td>{{ car.drive_axle_model }}</td>
+                        <td>{{ car.steering_axle_model }}</td>
+                        <td>{{ car.shipping_date }}</td>
+                        <td>{{ car.client }}</td>
+                        <td>{{ car.service_company }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'pagination.html' %}
+    </div>
+
+    <div id="maintenance" class="tab-content" style="display:none;">
+        <h3>Техническое обслуживание</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th><a href="?sort=car__factory_number">Машина</a></th>
+                    <th><a href="?sort=maintenance_type">Вид ТО</a></th>
+                    <th><a href="?sort=date">Дата проведения</a></th>
+                    <th><a href="?sort=operating_time">Наработка, м/час</a></th>
+                    <th><a href="?sort=order_number">№ заказ-наряда</a></th>
+                    <th><a href="?sort=order_date">Дата заказ-наряда</a></th>
+                    <th><a href="?sort=maintenance_organization">Организация, проводившая ТО</a></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for maintenance in maintenances %}
+                    <tr>
+                        <td>{{ maintenance.car.factory_number }}</td>
+                        <td>{{ maintenance.maintenance_type }}</td>
+                        <td>{{ maintenance.date }}</td>
+                        <td>{{ maintenance.operating_time }}</td>
+                        <td>{{ maintenance.order_number }}</td>
+                        <td>{{ maintenance.order_date }}</td>
+                        <td>{{ maintenance.maintenance_organization }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'pagination.html' %}
+    </div>
+
+    <div id="complaints" class="tab-content" style="display:none;">
+        <h3>Рекламации</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th><a href="?sort=car__factory_number">Машина</a></th>
+                    <th><a href="?sort=failure_date">Дата отказа</a></th>
+                    <th><a href="?sort=operating_time">Наработка, м/час</a></th>
+                    <th><a href="?sort=failure_node">Узел отказа</a></th>
+                    <th>Описание отказа</th>
+                    <th><a href="?sort=recovery_method">Способ восстановления</a></th>
+                    <th>Используемые запасные части</th>
+                    <th><a href="?sort=recovery_date">Дата восстановления</a></th>
+                    <th><a href="?sort=downtime">Время простоя техники</a></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for complaint in complaints %}
+                    <tr>
+                        <td>{{ complaint.car.factory_number }}</td>
+                        <td>{{ complaint.failure_date }}</td>
+                        <td>{{ complaint.operating_time }}</td>
+                        <td>{{ complaint.failure_node }}</td>
+                        <td>{{ complaint.failure_description }}</td>
+                        <td>{{ complaint.recovery_method }}</td>
+                        <td>{{ complaint.parts_used }}</td>
+                        <td>{{ complaint.recovery_date }}</td>
+                        <td>{{ complaint.downtime }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'pagination.html' %}
+    </div>
+
+    <script>
+        function openTab(tabName) {
+            var i, tabContent, tabButtons;
+            tabContent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].style.display = "none";
+            }
+            tabButtons = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].className = tabButtons[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            // Add 'active' class to the clicked button (optional)
+            // evt.currentTarget.className += " active";
+            document.getElementById('active_tab').value = tabName;
+        }
+        // Open the 'general' tab by default
+        openTab('general');
+    </script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Детали Технического Обслуживания</h2>
+<table class="maintenance-details">
+    <tr>
+        <th>Вид ТО</th>
+        <td><a href="{% url 'reference_detail' 'Вид ТО' maintenance.maintenance_type.name %}">{{ maintenance.maintenance_type.name }}</a></td>
+    </tr>
+    <tr>
+        <th>Дата проведения</th>
+        <td>{{ maintenance.date }}</td>
+    </tr>
+    <tr>
+        <th>Наработка, м/час</th>
+        <td>{{ maintenance.operating_time }}</td>
+    </tr>
+    <tr>
+        <th>№ заказ-наряда</th>
+        <td>{{ maintenance.order_number }}</td>
+    </tr>
+    <tr>
+        <th>Дата заказ-наряда</th>
+        <td>{{ maintenance.order_date }}</td>
+    </tr>
+    <tr>
+        <th>Организация, проводившая ТО</th>
+        <td><a href="{% url 'reference_detail' 'Организация, проводившая ТО' maintenance.maintenance_organization.name %}">{{ maintenance.maintenance_organization.name }}</a></td>
+    </tr>
+    <tr>
+        <th>Машина</th>
+        <td>{{ maintenance.car.factory_number }}</td>
+    </tr>
+    <tr>
+        <th>Сервисная компания</th>
+        <td>{{ maintenance.service_company }}</td>
+    </tr>
+</table>
+<a href="{% url 'car_detail' maintenance.car.id %}">Вернуться к деталям машины</a>
+{% endblock %}

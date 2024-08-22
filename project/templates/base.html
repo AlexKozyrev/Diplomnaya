@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой Силант</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+<header style="display: flex; flex-direction: column;">
+    <div style="display: flex; flex-direction: row; width: 80%;">
+        <a href="{% url 'authenticated_home' %}" style="flex: 1; text-align: left;">
+           <img src="{% static 'img/logo.jpg' %}" alt="Эмблема сайта" style="max-width: 100px; height: auto;">
+        </a>
+        <div style="flex: 1; ">
+            <p>Телефон: +7 (XXX) XXX-XX-XX</p>
+            <a href="https://t.me/your_channel">Telegram канал</a>
+        </div>
+        <div style="display: flex; flex: 1;">
+            {% if user.is_authenticated %}
+                <p>Привет, {{ user.username }}!</p>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit">Выйти из аккаунта</button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <input type="text" name="username" placeholder="Логин">
+                    <input type="password" name="password" placeholder="Пароль">
+                    <button type="submit">Войти</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    <h1 style="text-align: center;">Электронная сервисная книжка Мой Силант</h1>
+</header>
+    <main>
+        {% block content %}
+        {% endblock %}
+        <div id="descriptionModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <p id="descriptionText"></p>
+    </div>
+</div>
+
+    </main>
+
+    <footer>
+        <p>© 2023 Мой Силант</p>
+        <p>Все права защищены</p>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

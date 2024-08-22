@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Детали Рекламации</h2>
+<table class="complaint-details">
+    <tr>
+        <th>Дата отказа</th>
+        <td>{{ complaint.failure_date }}</td>
+    </tr>
+    <tr>
+        <th>Наработка, м/час</th>
+        <td>{{ complaint.operating_time }}</td>
+    </tr>
+    <tr>
+        <th>Узел отказа</th>
+        <td><a href="{% url 'reference_detail' 'Узел отказа' complaint.failure_node.name %}">{{ complaint.failure_node.name }}</a></td>
+    </tr>
+    <tr>
+        <th>Описание отказа</th>
+        <td>{{ complaint.failure_description }}</td>
+    </tr>
+    <tr>
+        <th>Способ восстановления</th>
+        <td><a href="{% url 'reference_detail' 'Способ восстановления' complaint.recovery_method.name %}">{{ complaint.recovery_method.name }}</a></td>
+    </tr>
+    <tr>
+        <th>Используемые запасные части</th>
+        <td>{{ complaint.parts_used }}</td>
+    </tr>
+    <tr>
+        <th>Дата восстановления</th>
+        <td>{{ complaint.recovery_date }}</td>
+    </tr>
+    <tr>
+        <th>Время простоя техники</th>
+        <td>{{ complaint.downtime }} дней</td>
+    </tr>
+    <tr>
+        <th>Машина</th>
+        <td>{{ complaint.car.factory_number }}</td>
+    </tr>
+    <tr>
+        <th>Сервисная компания</th>
+        <td>{{ complaint.service_company }}</td>
+    </tr>
+</table>
+<a href="{% url 'car_detail' complaint.car.id %}">Вернуться к деталям машины</a>
+{% endblock %}

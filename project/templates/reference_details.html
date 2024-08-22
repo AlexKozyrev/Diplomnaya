@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Описание: {{ reference.name }}</h2>
+<table class="reference-details">
+    <tr>
+        <th>Категория</th>
+        <td>{{ reference.category }}</td>
+    </tr>
+    <tr>
+        <th>Описание</th>
+        <td>{{ reference.description|linebreaks }}</td>
+    </tr>
+</table>
+<a href="javascript:history.back()">Назад</a>
+{% endblock %}

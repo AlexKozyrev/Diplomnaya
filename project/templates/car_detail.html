@@ -1,13 +1,137 @@
-<h1>Car Details</h1>
-<p>Factory Number: {{ car.factory_number }}</p>
-<p>Tech Model: {{ car.tech_model.name }}</p>
-<p>Engine Model: {{ car.engine_model.name }}</p>
-<p>Engine Number: {{ car.engine_number }}</p>
-<p>Transmission Model: {{ car.transmission_model.name }}</p>
-<p>Transmission Number: {{ car.transmission_number }}</p>
-<p>Drive Axle Model: {{ car.drive_axle_model.name }}</p>
-<p>Drive Axle Number: {{ car.drive_axle_number }}</p>
-<p>Steering Axle Model: {{ car.steering_axle_model.name }}</p>
-<p>Steering Axle Number: {{ car.steering_axle_number }}</p>
-<p>Supply Contract: {{ car.supply_contract }}</p>
-<p>Shipping Date: {{ car.shipping_date }}</p>
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Детальная информация о машине</h2>
+    <table class="car-details">
+        <tr>
+            <th>Зав. № машины</th>
+            <td>{{ car.factory_number }}</td>
+        </tr>
+        <tr>
+            <th>Модель техники</th>
+            <td><a href="{% url 'reference_detail' 'Модель техники' car.tech_model.name %}">{{ car.tech_model.name }}</a></td>
+        </tr>
+        <tr>
+            <th>Модель двигателя</th>
+            <td><a href="{% url 'reference_detail' 'Модель двигателя' car.engine_model.name %}">{{ car.engine_model.name }}</a></td>
+        </tr>
+        <tr>
+            <th>Зав. № двигателя</th>
+            <td>{{ car.engine_number }}</td>
+        </tr>
+        <tr>
+            <th>Модель трансмиссии</th>
+            <td><a href="{% url 'reference_detail' 'Модель трансмиссии' car.transmission_model.name %}">{{ car.transmission_model.name }}</a></td>
+        </tr>
+        <tr>
+            <th>Зав. № трансмиссии</th>
+            <td>{{ car.transmission_number }}</td>
+        </tr>
+        <tr>
+            <th>Модель ведущего моста</th>
+            <td><a href="{% url 'reference_detail' 'Модель ведущего моста' car.drive_axle_model.name %}">{{ car.drive_axle_model.name }}</a></td>
+        </tr>
+        <tr>
+            <th>Зав. № ведущего моста</th>
+            <td>{{ car.drive_axle_number }}</td>
+        </tr>
+        <tr>
+            <th>Модель управляемого моста</th>
+            <td><a href="{% url 'reference_detail' 'Модель управляемого моста' car.steering_axle_model.name %}">{{ car.steering_axle_model.name }}</a></td>
+        </tr>
+        <tr>
+            <th>Зав. № управляемого моста</th>
+            <td>{{ car.steering_axle_number }}</td>
+        </tr>
+        {% if user.is_authenticated %}
+        <tr>
+            <th>Договор поставки №, дата</th>
+            <td>{{ car.supply_contract }}</td>
+        </tr>
+        <tr>
+            <th>Дата отгрузки с завода</th>
+            <td>{{ car.shipping_date }}</td>
+        </tr>
+        <tr>
+            <th>Грузополучатель (конечный потребитель)</th>
+            <td>{{ car.consignee }}</td>
+        </tr>
+        <tr>
+            <th>Адрес поставки (эксплуатации)</th>
+            <td>{{ car.delivery_address }}</td>
+        </tr>
+        <tr>
+            <th>Комплектация (доп. опции)</th>
+            <td>{{ car.equipment }}</td>
+        </tr>
+        <tr>
+            <th>Клиент</th>
+            <td>{{ car.client }}</td>
+        </tr>
+        <tr>
+            <th>Сервисная компания</th>
+            <td>{{ car.service_company }}</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <h3>Техническое обслуживание</h3>
+    <table class="maintenance-table">
+        <thead>
+            <tr>
+                <th>Вид ТО</th>
+                <th>Дата проведения</th>
+                <th>Наработка, м/час</th>
+                <th>№ заказ-наряда</th>
+                <th>Дата заказ-наряда</th>
+                <th>Организация, проводившая ТО</th>
+                <th>Сервисная компания</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for maintenance in maintenances %}
+                <tr>
+                    <td><a href="{% url 'maintenance_detail' car.id maintenance.id %}">{{ maintenance.maintenance_type.name }}</a></td>
+                    <td>{{ maintenance.date }}</td>
+                    <td>{{ maintenance.operating_time }}</td>
+                    <td>{{ maintenance.order_number }}</td>
+                    <td>{{ maintenance.order_date }}</td>
+                    <td><a href="{% url 'reference_detail' 'Организация, проводившая ТО' maintenance.maintenance_organization.name %}">{{ maintenance.maintenance_organization.name }}</a></td>
+                    <td>{{ maintenance.service_company }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Рекламации</h3>
+    <table class="complaints-table">
+        <thead>
+            <tr>
+                <th>Дата отказа</th>
+                <th>Наработка, м/час</th>
+                <th>Узел отказа</th>
+                <th>Описание отказа</th>
+                <th>Способ восстановления</th>
+                <th>Используемые запасные части</th>
+                <th>Дата восстановления</th>
+                <th>Время простоя техники</th>
+                <th>Сервисная компания</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for complaint in complaints %}
+                <tr>
+                    <td><a href="{% url 'complaint_detail' car.id complaint.id %}">{{ complaint.failure_date }}</a></td>
+                    <td>{{ complaint.operating_time }}</td>
+                    <td><a href="{% url 'reference_detail' 'Узел отказа' complaint.failure_node.name %}">{{ complaint.failure_node.name }}</a></td>
+                    <td>{{ complaint.failure_description }}</td>
+                    <td><a href="{% url 'reference_detail' 'Способ восстановления' complaint.recovery_method.name %}">{{ complaint.recovery_method.name }}</a></td>
+                    <td>{{ complaint.parts_used }}</td>
+                    <td>{{ complaint.recovery_date }}</td>
+                    <td>{{ complaint.downtime }}</td>
+                    <td>{{ complaint.service_company }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

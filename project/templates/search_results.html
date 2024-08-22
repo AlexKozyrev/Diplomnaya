@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Проверьте комплектацию вашей техники Силант</h2>
+<form action="{% url 'search_car' %}" method="get">
+    <input type="text" name="query" placeholder="Введите заводской номер">
+    <button type="submit">Искать</button>
+</form>
+
+{% if cars %}
+    <h1>Результаты поиска</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Зав. № машины</th>
+                <th>Модель техники</th>
+                <th>Модель двигателя</th>
+                <th>Модель трансмиссии</th>
+                <th>Модель ведущего моста</th>
+                <th>Модель управляемого моста</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for car in cars %}
+                <tr onclick="location.href='{% url 'car_detail' car.id %}'">
+                    <td>{{ car.factory_number }}</td>
+                    <td>{{ car.tech_model.name }}</td>
+                    <td>{{ car.engine_model.name }}</td>
+                    <td>{{ car.transmission_model.name }}</td>
+                    <td>{{ car.drive_axle_model.name }}</td>
+                    <td>{{ car.steering_axle_model.name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% endblock %}
