@@ -27,6 +27,15 @@ def search_car(request):
     return render(request, 'search_results.html', {'cars': cars})
 
 
+def search_car2(request):
+    query = request.GET.get('query', '')
+    if query:
+        cars = Car.objects.filter(factory_number__iexact=query)
+    else:
+        cars = Car.objects.all()[:10]
+    return render(request, 'search_results.html', {'cars': cars})
+
+
 def car_detail(request, car_id):
     try:
         car = get_object_or_404(Car, id=car_id)
@@ -66,10 +75,9 @@ def authenticated_home(request):
     drive_axle_model = request.GET.get('drive_axle_model')
     steering_axle_model = request.GET.get('steering_axle_model')
     active_tab = request.GET.get('active_tab', 'general')
-
-    # Apply filtering based on the active tab
+    maintenance_type = request.GET.get('maintenance_type')
+    print(maintenance_type)
     if active_tab == 'general':
-        # Filtering for the 'general' tab (cars)
         if tech_model:
             cars = cars.filter(tech_model__name__icontains=tech_model)
         if engine_model:
@@ -81,19 +89,16 @@ def authenticated_home(request):
         if steering_axle_model:
             cars = cars.filter(steering_axle_model__name__icontains=steering_axle_model)
     elif active_tab == 'maintenance':
-        # Filtering for the 'maintenance' tab (maintenances)
-        if tech_model:
-            maintenances = maintenances.filter(car__tech_model__name__icontains=tech_model)
+        if maintenance_type:
+            maintenances = maintenances.filter(maintenance_type__icontains=maintenance_type)
+            print(maintenance_type, 'rf')
         if engine_model:
             maintenances = maintenances.filter(car__engine_model__name__icontains=engine_model)
-        # ... other filters for the 'maintenance' tab ...
     elif active_tab == 'complaints':
-        # Filtering for the 'complaints' tab (complaints)
         if tech_model:
             complaints = complaints.filter(car__tech_model__name__icontains=tech_model)
         if engine_model:
             complaints = complaints.filter(car__engine_model__name__icontains=engine_model)
-        # ... other filters for the 'complaints' tab ...
 
     # Сортировка
     sort_by = request.GET.get('sort', 'shipping_date')
@@ -103,7 +108,7 @@ def authenticated_home(request):
         cars = cars.order_by(F(sort_by).asc(nulls_last=True))
 
     # Пагинация
-    paginator = Paginator(cars, 10)  # 10 машин на страницу
+    paginator = Paginator(cars, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -131,23 +136,16 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            # Можно добавить сообщение об успешном входе
             messages.success(request, f"Вы вошли как {username}.")
-            return redirect('authenticated_home')  # Предполагается, что 'home' - это URL после входа
+            return redirect('authenticated_home')
         else:
-            # Можно добавить сообщение об ошибке
             messages.error(request, "Неверное имя пользователя или пароль.")
     return render(request, 'base.html')
 
 
 def logout_view(request):
-    # Выполняем выход пользователя
     logout(request)
-
-    # Добавляем сообщение об успешном выходе
     messages.success(request, "Вы успешно вышли из системы.")
-
-    # Перенаправляем на домашнюю страницу
     return redirect('home')
 
 
@@ -156,8 +154,18 @@ def maintenance_detail(request, car_id, maintenance_id):
     return render(request, 'to_details.html', {'maintenance': maintenance})
 
 
+def maintenance_details(request, maintenance_id):
+    maintenance = get_object_or_404(Maintenance, id=maintenance_id)
+    return render(request, 'to_details.html', {'maintenance': maintenance})
+
+
 def complaint_detail(request, car_id, complaint_id):
     complaint = get_object_or_404(Complaint, id=complaint_id, car_id=car_id)
+    return render(request, 'complaint_details.html', {'complaint': complaint})
+
+
+def complaint_details(request, complaint_id):
+    complaint = get_object_or_404(Complaint, id=complaint_id)
     return render(request, 'complaint_details.html', {'complaint': complaint})
 
 

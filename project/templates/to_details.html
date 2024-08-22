@@ -29,12 +29,11 @@
     </tr>
     <tr>
         <th>Машина</th>
-        <td>{{ maintenance.car.factory_number }}</td>
+        <td onclick="href='{% url 'car_detail' maintenance.car.id %}'">{{ maintenance.car.factory_number }}</td>
     </tr>
     <tr>
         <th>Сервисная компания</th>
         <td>{{ maintenance.service_company }}</td>
     </tr>
 </table>
-<a href="{% url 'car_detail' maintenance.car.id %}">Вернуться к деталям машины</a>
 {% endblock %}

@@ -81,23 +81,19 @@
             <tr>
                 <th>Вид ТО</th>
                 <th>Дата проведения</th>
-                <th>Наработка, м/час</th>
                 <th>№ заказ-наряда</th>
                 <th>Дата заказ-наряда</th>
                 <th>Организация, проводившая ТО</th>
-                <th>Сервисная компания</th>
             </tr>
         </thead>
         <tbody>
             {% for maintenance in maintenances %}
-                <tr>
-                    <td><a href="{% url 'maintenance_detail' car.id maintenance.id %}">{{ maintenance.maintenance_type.name }}</a></td>
+                <tr onclick="location.href='{% url 'maintenance_detail' car.id maintenance.id %}'">
+                    <td>{{ maintenance.maintenance_type.name }}</a></td>
                     <td>{{ maintenance.date }}</td>
-                    <td>{{ maintenance.operating_time }}</td>
                     <td>{{ maintenance.order_number }}</td>
                     <td>{{ maintenance.order_date }}</td>
                     <td><a href="{% url 'reference_detail' 'Организация, проводившая ТО' maintenance.maintenance_organization.name %}">{{ maintenance.maintenance_organization.name }}</a></td>
-                    <td>{{ maintenance.service_company }}</td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -120,7 +116,7 @@
         </thead>
         <tbody>
             {% for complaint in complaints %}
-                <tr>
+                <tr onclick="location.href='{% url 'complaint_detail' car.id complaint.id %}'">
                     <td><a href="{% url 'complaint_detail' car.id complaint.id %}">{{ complaint.failure_date }}</a></td>
                     <td>{{ complaint.operating_time }}</td>
                     <td><a href="{% url 'reference_detail' 'Узел отказа' complaint.failure_node.name %}">{{ complaint.failure_node.name }}</a></td>

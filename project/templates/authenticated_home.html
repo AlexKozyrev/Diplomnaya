@@ -59,6 +59,12 @@
     <div id="maintenance" class="tab-content" style="display:none;">
         <h3>Техническое обслуживание</h3>
         <table>
+            <form method="get">
+            <input type="text" name="maintenance_type" placeholder="Вид ТО">
+            <input type="text" name="car__factory_number" placeholder="зав.номер машины">
+            <input type="text" name="maintenance_organization" placeholder="Организация, проводившая ТО">
+            <button type="submit-2">Фильтровать</button>
+            </form>
             <thead>
                 <tr>
                     <th><a href="?sort=car__factory_number">Машина</a></th>
@@ -72,7 +78,7 @@
             </thead>
             <tbody>
                 {% for maintenance in maintenances %}
-                    <tr>
+                    <tr onclick="window.location.href='{% url 'maintenance_details' maintenance.id %}'">
                         <td>{{ maintenance.car.factory_number }}</td>
                         <td>{{ maintenance.maintenance_type }}</td>
                         <td>{{ maintenance.date }}</td>
@@ -105,7 +111,7 @@
             </thead>
             <tbody>
                 {% for complaint in complaints %}
-                    <tr>
+                    <tr onclick="window.location.href='{% url 'complaint_details' complaint.id %}'">
                         <td>{{ complaint.car.factory_number }}</td>
                         <td>{{ complaint.failure_date }}</td>
                         <td>{{ complaint.operating_time }}</td>

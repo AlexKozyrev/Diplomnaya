@@ -27,9 +27,9 @@ header {
     align-items: center;
 }
 
-/* Уменьшение размера логотипа */
+
 header img {
-    max-width: 100px; /* Установите нужный размер */
+    max-width: 100px;
     height: auto;
 }
 
@@ -38,7 +38,7 @@ main {
 }
 
 footer {
-    background: #163E6C; /* Фон footer */
+    background: #163E6C;
     color: #fff;
     text-align: center;
     padding: 1rem;
@@ -124,4 +124,34 @@ tr:hover {
 }
 .h1 {
 font-family: 'PT Astra Sans', sans-serif;
+}
+
+@media (max-width: 1920px) {
+    /* Стили для 1920x1080 */
+}
+
+@media (max-width: 1366px) {
+    /* Стили для 1366x768 */
+}
+
+@media (max-width: 1536px) {
+    /* Стили для 1536x864 */
+}
+
+@media (max-width: 1440px) {
+    /* Стили для 1440x900 */
+}
+
+@media (max-width: 768px) {
+    /* Общие стили для планшетов */
+    header img {
+        max-width: 15vw; /* Увеличиваем логотип на планшетах */
+    }
+}
+
+@media (max-width: 360px) {
+    /* Стили для 360x640 */
+    .tab-button {
+        font-size: 0.9em;
+    }
 }
