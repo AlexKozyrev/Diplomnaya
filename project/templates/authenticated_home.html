@@ -1,7 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Добро пожаловать, {{ user.username }}!</h2>
+    <h1>Основная панель</h1>
+        {% if type == 'user' %}
+            <h2>Добро пожаловать, клиент {{ user.username }}!</h2>
+        {% endif %}
+        {% if type == 'company' %}
+            <h2>Добро пожаловать, сервисная компания {{ user.username }}!</h2>
+        {% endif %}
+        {% if type == 'manager' %}
+            <h2>Добро пожаловать, менеджер {{ user.username }}!</h2>
+        {% endif %}
 
     <div id="tabs">
         <button class="tab-button" onclick="openTab('general')">Общая информация</button>
@@ -14,8 +23,8 @@
 
 
     <div id="general" class="tab-content">
-        <h3>Общая информация о машинах</h3>
-        {% if can_add_car %}
+        <h3>Информация о комплектации и технических характеристиках вашей техники</h3>
+        {% if cars.can_add_car %}
             <a href="{% url 'create_car' %}" class="button">Создать новую машину</a>
         {% endif %}
         <form id="filter-form" method="get">
@@ -33,8 +42,8 @@
     </div>
 
     <div id="maintenance" class="tab-content" style="display:none;">
-        <h3>Техническое обслуживание</h3>
-        {% if can_add_maintenance %}
+        <h3>Информация о проведенных ТО Вашей техники</h3>
+        {% if add_maintenance %}
             <a href="{% url 'create_maintenance' %}" class="button">Создать новое ТО</a>
         {% endif %}
         <form method="get">
@@ -47,13 +56,13 @@
 
             <thead>
                 <tr>
-                    <th><a href="?sort=car__factory_number">Машина</a></th>
-                    <th><a href="?sort=maintenance_type">Вид ТО</a></th>
-                    <th><a href="?sort=date">Дата проведения</a></th>
-                    <th><a href="?sort=operating_time">Наработка, м/час</a></th>
-                    <th><a href="?sort=order_number">№ заказ-наряда</a></th>
-                    <th><a href="?sort=order_date">Дата заказ-наряда</a></th>
-                    <th><a href="?sort=maintenance_organization">Организация, проводившая ТО</a></th>
+                    <th><a href="?sort=car__factory_number&active_tab=maintenance">Машина</a></th>
+        <th><a href="?sort=maintenance_type&active_tab=maintenance">Вид ТО</a></th>
+        <th><a href="?sort=date&active_tab=maintenance">Дата проведения</a></th>
+        <th><a href="?sort=operating_time&active_tab=maintenance">Наработка, м/час</a></th>
+        <th><a href="?sort=order_number&active_tab=maintenance">№ заказ-наряда</a></th>
+        <th><a href="?sort=order_date&active_tab=maintenance">Дата заказ-наряда</a></th>
+        <th><a href="?sort=maintenance_organization&active_tab=maintenance">Организация, проводившая ТО</a></th>
                 </tr>
             </thead>
             <tbody>
@@ -66,7 +75,7 @@
                         <td>{{ maintenance.order_number }}</td>
                         <td>{{ maintenance.order_date }}</td>
                         <td>{{ maintenance.maintenance_organization }}</td>
-                        {% if can_change_maintenance %}
+                        {% if change_maintenance %}
                             <td><a href="{% url 'edit_maintenance' maintenance.id %}">Редактировать</a></td>
                         {% endif %}
                     </tr>
@@ -77,7 +86,10 @@
     </div>
 
     <div id="complaints" class="tab-content" style="display:none;">
-        <h3>Рекламации</h3>
+        <h3>Заявленные рекламации и сроки их устранения</h3>
+        {% if add_complaint %}
+         <a href="{% url 'create_complaint' %}" class="button">Добавить новую рекламацию</a>
+        {% endif %}
         <table>
             <thead>
                 <tr>
@@ -104,13 +116,16 @@
                         <td>{{ complaint.parts_used }}</td>
                         <td>{{ complaint.recovery_date }}</td>
                         <td>{{ complaint.downtime }}</td>
+                        {% if change_complaint %}
+                            <td><a href="{% url 'edit_complaint' complaint.id %}">Редактировать</a></td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
         {% include 'pagination.html' %}
     </div>
-    {% if can_add_reference %}
+    {% if add_reference %}
          <a href="{% url 'create_reference' %}" class="button">Добавить новую запись в справочник</a>
     {% endif %}
     <script>
@@ -129,7 +144,7 @@
             // evt.currentTarget.className += " active";
             document.getElementById('active_tab').value = tabName;
         }
-        // Open the 'general' tab by default
+
         openTab('general');
         window.onload = function() {
                  openTab('general');
@@ -137,28 +152,26 @@
         <script>
     $(document).ready(function() {
         $('#filter-form').on('submit', function(event) {
-            event.preventDefault(); // Предотвращение перезагрузки страницы
+            event.preventDefault();
 
             $.ajax({
-                url: window.location.href, // Отправка формы на текущий URL
+                url: window.location.href,
                 type: $(this).attr('method'),
                 data: $(this).serialize(),
                 success: function(data) {
-                    // Обновите содержимое таблицы с новыми данными
                     $('#car-list').html($(data).find('#car-list').html());
                 }
             });
         });
 
         $('#maintenance-filter-form').on('submit', function(event) {
-            event.preventDefault(); // Предотвращение перезагрузки страницы
+            event.preventDefault();
 
             $.ajax({
                 url: window.location.href, // Отправка формы на текущий URL
                 type: $(this).attr('method'),
                 data: $(this).serialize(),
                 success: function(data) {
-                    // Обновите содержимое таблицы с новыми данными
                     $('#maintenance-list').html($(data).find('#maintenance-list').html());
                 }
             });

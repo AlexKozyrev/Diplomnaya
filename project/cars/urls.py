@@ -6,15 +6,14 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
 
-
 schema_view = get_schema_view(
-   openapi.Info(
-      title="Car Management API",
-      default_version='v1',
-      description="API for managing cars, maintenances, and complaints",
-   ),
-   public=True,
-   permission_classes=(permissions.AllowAny,),
+    openapi.Info(
+        title="Car Management API",
+        default_version='v1',
+        description="API for managing cars, maintenances, and complaints",
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
 )
 
 router = DefaultRouter()
@@ -23,7 +22,7 @@ router.register(r'maintenances', MaintenanceViewSet)
 router.register(r'complaints', ComplaintViewSet)
 urlpatterns = [
     path('', views.home, name='home'),
-    path('search/', views.search_car, name='search_car'),
+    path('search/', views.search_car, name='search_car'),  # сменить на search_car2 для более строгой фильтрации
     path('car/<int:car_id>/', views.car_detail, name='car_detail'),
     path('authenticated/', views.authenticated_home, name='authenticated_home'),
     path('api/reference-description/', views.reference_description, name='reference_description'),

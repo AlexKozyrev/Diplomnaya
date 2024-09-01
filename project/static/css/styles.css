@@ -7,6 +7,7 @@ body {
 }
 
 header {
+    font-family: 'PT Astra Sans', sans-serif;
     background: #EBE6D6;
     padding: 1rem;
     display: flex;

@@ -65,24 +65,21 @@ def car_detail(request, car_id):
         return render(request, '404.html', status=404)
 
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
-from django.db.models import F
-from .models import Car, Maintenance, Complaint
-
-
 @login_required(login_url='home')
 def authenticated_home(request):
     user = request.user
     if user.groups.filter(name='Клиент').exists():
         cars = Car.objects.filter(client=user)
-    elif user.groups.filter(name='Сервисная компания').exists():
+        typeOfUser = 'user'
+    elif user.groups.filter(name='Сервисная организация').exists():
         cars = Car.objects.filter(service_company=user)
+        typeOfUser = 'company'
     elif user.is_staff:
         cars = Car.objects.all()
+        typeOfUser = 'manager'
     else:
         cars = Car.objects.none()
+        typeOfUser = 'null'
 
     maintenances = Maintenance.objects.filter(car__in=cars).order_by('-date')
     complaints = Complaint.objects.filter(car__in=cars).order_by('-failure_date')
@@ -120,10 +117,21 @@ def authenticated_home(request):
 
     # Сортировка
     sort_by = request.GET.get('sort', 'shipping_date')
-    if sort_by.startswith('-'):
-        cars = cars.order_by(F(sort_by[1:]).desc(nulls_last=True))
-    else:
-        cars = cars.order_by(F(sort_by).asc(nulls_last=True))
+    if active_tab == 'general':
+        if sort_by.startswith('-'):
+            cars = cars.order_by(F(sort_by[1:]).desc(nulls_last=True))
+        else:
+            cars = cars.order_by(F(sort_by).asc(nulls_last=True))
+    elif active_tab == 'maintenance':
+        if sort_by.startswith('-'):
+            maintenances = maintenances.order_by(F(sort_by[1:]).desc(nulls_last=True))
+        else:
+            maintenances = maintenances.order_by(F(sort_by).asc(nulls_last=True))
+    elif active_tab == 'complaints':
+        if sort_by.startswith('-'):
+            complaints = complaints.order_by(F(sort_by[1:]).desc(nulls_last=True))
+        else:
+            complaints = complaints.order_by(F(sort_by).asc(nulls_last=True))
 
     # Пагинация
     paginator = Paginator(cars, 10)
@@ -136,14 +144,15 @@ def authenticated_home(request):
         'maintenances': maintenances,
         'complaints': complaints,
         'active_tab': active_tab,
-        'can_add_car': request.user.has_perm('app_name.can_add_car'),
-        'can_change_car': request.user.has_perm('app_name.can_change_car'),
-        'can_add_maintenance': request.user.has_perm('app_name.can_add_maintenance'),
-        'can_change_maintenance': request.user.has_perm('app_name.can_change_maintenance'),
-        'can_add_complaint': request.user.has_perm('app_name.can_add_complaint'),
-        'can_change_complaint': request.user.has_perm('app_name.can_change_complaint'),
-        'can_add_reference': request.user.has_perm('app_name.can_add_reference'),
-        'can_change_reference': request.user.has_perm('app_name.can_change_reference'),
+        'add_car': request.user.has_perm('cars.add_car'),
+        'change_car': request.user.has_perm('cars.change_car'),
+        'add_maintenance': request.user.has_perm('cars.add_maintenance'),
+        'change_maintenance': request.user.has_perm('cars.change_maintenance'),
+        'add_complaint': request.user.has_perm('cars.add_complaint'),
+        'change_complaint': request.user.has_perm('cars.change_complaint'),
+        'add_reference': request.user.has_perm('cars.add_reference'),
+        'change_reference': request.user.has_perm('cars.change_reference'),
+        'type': typeOfUser,
     }
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -174,7 +183,7 @@ def reference_description(request):
     if reference:
         context = {
             'reference': reference,
-            'can_edit_reference': request.user.has_perm('app_name.can_change_reference')
+            'edit_reference': request.user.has_perm('app_name.change_reference')
         }
         return render(request, 'reference_detail.html', context)
 
@@ -215,7 +224,7 @@ def reference_detail(request, category, name):
     return render(request, 'reference_details.html', {'reference': reference})
 
 
-@permission_required('can_add_car')
+@permission_required('cars.add_car')
 def create_car(request):
     if request.method == 'POST':
         form = CarForm(request.POST)
@@ -227,7 +236,7 @@ def create_car(request):
     return render(request, 'create_edit_form.html', {'form': form})
 
 
-@permission_required('can_change_car')
+@permission_required('cars.change_car')
 def edit_car(request, pk):
     car = get_object_or_404(Car, pk=pk)
     if request.method == 'POST':
@@ -240,7 +249,7 @@ def edit_car(request, pk):
     return render(request, 'create_edit_form.html', {'form': form})
 
 
-@permission_required('can_add_maintenance')
+@permission_required('cars.add_maintenance')
 def create_maintenance(request):
     if request.method == 'POST':
         form = MaintenanceForm(request.POST)
@@ -252,7 +261,7 @@ def create_maintenance(request):
     return render(request, 'create_edit_form.html', {'form': form})
 
 
-@permission_required('can_change_maintenance')
+@permission_required('cars.change_maintenance')
 def edit_maintenance(request, pk):
     maintenance = get_object_or_404(Maintenance, pk=pk)
     if request.method == 'POST':
@@ -265,7 +274,7 @@ def edit_maintenance(request, pk):
     return render(request, 'create_edit_form.html', {'form': form})
 
 
-@permission_required('can_add_complaint')
+@permission_required('cars.add_complaint')
 def create_complaint(request):
     if request.method == 'POST':
         form = ComplaintForm(request.POST)
@@ -277,7 +286,7 @@ def create_complaint(request):
     return render(request, 'create_edit_form.html', {'form': form})
 
 
-@permission_required('can_change_complaint')
+@permission_required('cars.change_complaint')
 def edit_complaint(request, pk):
     complaint = get_object_or_404(Complaint, pk=pk)
     if request.method == 'POST':
@@ -290,7 +299,7 @@ def edit_complaint(request, pk):
     return render(request, 'create_edit_form.html', {'form': form})
 
 
-@permission_required('can_add_reference')
+@permission_required('cars.add_reference')
 def create_reference(request):
     if request.method == 'POST':
         form = ReferenceForm(request.POST)
@@ -302,7 +311,7 @@ def create_reference(request):
     return render(request, 'create_edit_form.html', {'form': form})
 
 
-@permission_required('can_change_reference')
+@permission_required('cars.change_reference')
 def edit_reference(request, pk):
     reference = get_object_or_404(Reference, pk=pk)
     if request.method == 'POST':
