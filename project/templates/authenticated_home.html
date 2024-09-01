@@ -37,13 +37,14 @@
         {% if can_add_maintenance %}
             <a href="{% url 'create_maintenance' %}" class="button">Создать новое ТО</a>
         {% endif %}
-        <table>
-            <form method="get">
+        <form method="get">
             <input type="text" name="maintenance_type" placeholder="Вид ТО">
             <input type="text" name="car__factory_number" placeholder="зав.номер машины">
             <input type="text" name="maintenance_organization" placeholder="Организация, проводившая ТО">
             <button type="submit-2">Фильтровать</button>
             </form>
+        <table>
+
             <thead>
                 <tr>
                     <th><a href="?sort=car__factory_number">Машина</a></th>
@@ -112,9 +113,6 @@
     {% if can_add_reference %}
          <a href="{% url 'create_reference' %}" class="button">Добавить новую запись в справочник</a>
     {% endif %}
-    {% if can_edit_reference %}
-         <a href="{% url 'edit_reference' %}" class="button">Изменить существующий справочник</a>
-    {% endif %}
     <script>
         function openTab(tabName) {
             var i, tabContent, tabButtons;
@@ -133,7 +131,9 @@
         }
         // Open the 'general' tab by default
         openTab('general');
-
+        window.onload = function() {
+                 openTab('general');
+        }
         <script>
     $(document).ready(function() {
         $('#filter-form').on('submit', function(event) {

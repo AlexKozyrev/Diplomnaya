@@ -68,6 +68,7 @@ from django.core.paginator import Paginator
 from django.db.models import F
 from .models import Car, Maintenance, Complaint
 
+
 @login_required(login_url='home')
 def authenticated_home(request):
     user = request.user
@@ -138,21 +139,14 @@ def authenticated_home(request):
         'can_change_maintenance': request.user.has_perm('app_name.can_change_maintenance'),
         'can_add_complaint': request.user.has_perm('app_name.can_add_complaint'),
         'can_change_complaint': request.user.has_perm('app_name.can_change_complaint'),
+        'can_add_reference': request.user.has_perm('app_name.can_add_reference'),
+        'can_change_reference': request.user.has_perm('app_name.can_change_reference'),
     }
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'partials/car_list.html', context)
+        return render(request, 'car_list.html', context)
     else:
         return render(request, 'authenticated_home.html', context)
-
-
-def reference_description(request):
-    category = request.GET.get('category')
-    name = request.GET.get('name')
-    reference = Reference.objects.filter(category=category, name=name).first()
-    if reference:
-        return JsonResponse({'description': reference.description})
-    return JsonResponse({'description': 'Описание не найдено'})
 
 
 def login_view(request):
@@ -167,6 +161,21 @@ def login_view(request):
         else:
             messages.error(request, "Неверное имя пользователя или пароль.")
     return render(request, 'base.html')
+
+
+def reference_description(request):
+    category = request.GET.get('category')
+    name = request.GET.get('name')
+    reference = Reference.objects.filter(category=category, name=name).first()
+
+    if reference:
+        context = {
+            'reference': reference,
+            'can_edit_reference': request.user.has_perm('app_name.can_change_reference')
+        }
+        return render(request, 'reference_detail.html', context)
+
+    return JsonResponse({'description': 'Описание не найдено'})
 
 
 def logout_view(request):
@@ -197,6 +206,9 @@ def complaint_details(request, complaint_id):
 
 def reference_detail(request, category, name):
     reference = get_object_or_404(Reference, category=category, name=name)
+    context = {
+        'can_change_reference': request.user.has_perm('app_name.can_change_reference'),
+    }
     return render(request, 'reference_details.html', {'reference': reference})
 
 

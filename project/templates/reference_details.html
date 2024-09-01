@@ -12,5 +12,8 @@
         <td>{{ reference.description|linebreaks }}</td>
     </tr>
 </table>
+{% if can_edit_reference %}
+    <a href="{% url 'edit_reference' %}" class="button">Изменить существующий справочник</a>
+{% endif %}
 <a href="javascript:history.back()">Назад</a>
 {% endblock %}

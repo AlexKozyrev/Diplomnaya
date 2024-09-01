@@ -1,0 +1,27 @@
+<thead>
+                <tr>
+                    <th><a href="?sort=car__factory_number">Машина</a></th>
+                    <th><a href="?sort=maintenance_type">Вид ТО</a></th>
+                    <th><a href="?sort=date">Дата проведения</a></th>
+                    <th><a href="?sort=operating_time">Наработка, м/час</a></th>
+                    <th><a href="?sort=order_number">№ заказ-наряда</a></th>
+                    <th><a href="?sort=order_date">Дата заказ-наряда</a></th>
+                    <th><a href="?sort=maintenance_organization">Организация, проводившая ТО</a></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for maintenance in maintenances %}
+                    <tr onclick="window.location.href='{% url 'maintenance_details' maintenance.id %}'">
+                        <td>{{ maintenance.car.factory_number }}</td>
+                        <td>{{ maintenance.maintenance_type }}</td>
+                        <td>{{ maintenance.date }}</td>
+                        <td>{{ maintenance.operating_time }}</td>
+                        <td>{{ maintenance.order_number }}</td>
+                        <td>{{ maintenance.order_date }}</td>
+                        <td>{{ maintenance.maintenance_organization }}</td>
+                        {% if can_change_maintenance %}
+                            <td><a href="{% url 'edit_maintenance' maintenance.id %}">Редактировать</a></td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
