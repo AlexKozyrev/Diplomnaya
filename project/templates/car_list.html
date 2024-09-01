@@ -1,0 +1,32 @@
+<!-- partials/car_list.html -->
+<thead>
+    <tr>
+        <th><a href="?sort=factory_number">Зав. № машины</a></th>
+        <th><a href="?sort=tech_model">Модель техники</a></th>
+        <th><a href="?sort=engine_model">Модель двигателя</a></th>
+        <th><a href="?sort=transmission_model">Модель трансмиссии</a></th>
+        <th><a href="?sort=drive_axle_model">Модель ведущего моста</a></th>
+        <th><a href="?sort=steering_axle_model">Модель управляемого моста</a></th>
+        <th><a href="?sort=shipping_date">Дата отгрузки</a></th>
+        <th><a href="?sort=client">Клиент</a></th>
+        <th><a href="?sort=service_company">Сервисная компания</a></th>
+    </tr>
+</thead>
+<tbody id="car-list">
+    {% for car in page_obj %}
+        <tr onclick="location.href='{% url 'car_detail' car.id %}'">
+            <td>{{ car.factory_number }}</td>
+            <td>{{ car.tech_model }}</td>
+            <td>{{ car.engine_model }}</td>
+            <td>{{ car.transmission_model }}</td>
+            <td>{{ car.drive_axle_model }}</td>
+            <td>{{ car.steering_axle_model }}</td>
+            <td>{{ car.shipping_date }}</td>
+            <td>{{ car.client }}</td>
+            <td>{{ car.service_company }}</td>
+            {% if can_change_car %}
+                <td><a href="{% url 'edit_car' car.id %}">Редактировать</a></td>
+            {% endif %}
+        </tr>
+    {% endfor %}
+</tbody>

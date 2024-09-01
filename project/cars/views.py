@@ -2,7 +2,9 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
+
+from .forms import CarForm, MaintenanceForm, ComplaintForm, ReferenceForm
 from .models import Car, Maintenance, Complaint, Reference
 from django.db.models import F
 from django.shortcuts import render, get_object_or_404, redirect
@@ -12,7 +14,7 @@ from django.http import Http404
 def home(request):
     if request.user.is_authenticated:
         # Логика для авторизованных пользователей
-        return render(request, 'authenticated_home.html')
+        return redirect('authenticated_home')
     else:
         # Логика для неавторизованных пользователей
         return render(request, 'home.html')
@@ -20,11 +22,16 @@ def home(request):
 
 def search_car(request):
     query = request.GET.get('query', '')
+    cars = []
+    message = ''
     if query:
         cars = Car.objects.filter(factory_number__icontains=query)[:10]
+        if not cars:
+            message = 'Данных о машине с таким заводским номером нет в системе'
     else:
         cars = Car.objects.all()[:10]
-    return render(request, 'search_results.html', {'cars': cars})
+
+    return render(request, 'search_results.html', {'cars': cars, 'message': message})
 
 
 def search_car2(request):
@@ -55,6 +62,12 @@ def car_detail(request, car_id):
         return render(request, '404.html', status=404)
 
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import F
+from .models import Car, Maintenance, Complaint
+
 @login_required(login_url='home')
 def authenticated_home(request):
     user = request.user
@@ -66,8 +79,10 @@ def authenticated_home(request):
         cars = Car.objects.all()
     else:
         cars = Car.objects.none()
+
     maintenances = Maintenance.objects.filter(car__in=cars).order_by('-date')
     complaints = Complaint.objects.filter(car__in=cars).order_by('-failure_date')
+
     # Фильтрация
     tech_model = request.GET.get('tech_model')
     engine_model = request.GET.get('engine_model')
@@ -76,7 +91,7 @@ def authenticated_home(request):
     steering_axle_model = request.GET.get('steering_axle_model')
     active_tab = request.GET.get('active_tab', 'general')
     maintenance_type = request.GET.get('maintenance_type')
-    print(maintenance_type)
+
     if active_tab == 'general':
         if tech_model:
             cars = cars.filter(tech_model__name__icontains=tech_model)
@@ -90,8 +105,7 @@ def authenticated_home(request):
             cars = cars.filter(steering_axle_model__name__icontains=steering_axle_model)
     elif active_tab == 'maintenance':
         if maintenance_type:
-            maintenances = maintenances.filter(maintenance_type__icontains=maintenance_type)
-            print(maintenance_type, 'rf')
+            maintenances = maintenances.filter(maintenance_type__name__icontains=maintenance_type)
         if engine_model:
             maintenances = maintenances.filter(car__engine_model__name__icontains=engine_model)
     elif active_tab == 'complaints':
@@ -112,12 +126,24 @@ def authenticated_home(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'authenticated_home.html', {
+    # Передача прав пользователя в контекст
+    context = {
         'page_obj': page_obj,
         'maintenances': maintenances,
         'complaints': complaints,
-        'active_tab': active_tab
-    })
+        'active_tab': active_tab,
+        'can_add_car': request.user.has_perm('app_name.can_add_car'),
+        'can_change_car': request.user.has_perm('app_name.can_change_car'),
+        'can_add_maintenance': request.user.has_perm('app_name.can_add_maintenance'),
+        'can_change_maintenance': request.user.has_perm('app_name.can_change_maintenance'),
+        'can_add_complaint': request.user.has_perm('app_name.can_add_complaint'),
+        'can_change_complaint': request.user.has_perm('app_name.can_change_complaint'),
+    }
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'partials/car_list.html', context)
+    else:
+        return render(request, 'authenticated_home.html', context)
 
 
 def reference_description(request):
@@ -172,3 +198,103 @@ def complaint_details(request, complaint_id):
 def reference_detail(request, category, name):
     reference = get_object_or_404(Reference, category=category, name=name)
     return render(request, 'reference_details.html', {'reference': reference})
+
+
+@permission_required('can_add_car')
+def create_car(request):
+    if request.method == 'POST':
+        form = CarForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = CarForm()
+    return render(request, 'create_edit_form.html', {'form': form})
+
+
+@permission_required('can_change_car')
+def edit_car(request, pk):
+    car = get_object_or_404(Car, pk=pk)
+    if request.method == 'POST':
+        form = CarForm(request.POST, instance=car)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = CarForm(instance=car)
+    return render(request, 'create_edit_form.html', {'form': form})
+
+
+@permission_required('can_add_maintenance')
+def create_maintenance(request):
+    if request.method == 'POST':
+        form = MaintenanceForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = MaintenanceForm()
+    return render(request, 'create_edit_form.html', {'form': form})
+
+
+@permission_required('can_change_maintenance')
+def edit_maintenance(request, pk):
+    maintenance = get_object_or_404(Maintenance, pk=pk)
+    if request.method == 'POST':
+        form = MaintenanceForm(request.POST, instance=maintenance)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = MaintenanceForm(instance=maintenance)
+    return render(request, 'create_edit_form.html', {'form': form})
+
+
+@permission_required('can_add_complaint')
+def create_complaint(request):
+    if request.method == 'POST':
+        form = ComplaintForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = ComplaintForm()
+    return render(request, 'create_edit_form.html', {'form': form})
+
+
+@permission_required('can_change_complaint')
+def edit_complaint(request, pk):
+    complaint = get_object_or_404(Complaint, pk=pk)
+    if request.method == 'POST':
+        form = ComplaintForm(request.POST, instance=complaint)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = ComplaintForm(instance=complaint)
+    return render(request, 'create_edit_form.html', {'form': form})
+
+
+@permission_required('can_add_reference')
+def create_reference(request):
+    if request.method == 'POST':
+        form = ReferenceForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = ReferenceForm()
+    return render(request, 'create_edit_form.html', {'form': form})
+
+
+@permission_required('can_change_reference')
+def edit_reference(request, pk):
+    reference = get_object_or_404(Reference, pk=pk)
+    if request.method == 'POST':
+        form = ReferenceForm(request.POST, instance=reference)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = ReferenceForm(instance=reference)
+    return render(request, 'create_edit_form.html', {'form': form})

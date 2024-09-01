@@ -15,49 +15,28 @@
 
     <div id="general" class="tab-content">
         <h3>Общая информация о машинах</h3>
-        <table>
-            <form method="get">
+        {% if can_add_car %}
+            <a href="{% url 'create_car' %}" class="button">Создать новую машину</a>
+        {% endif %}
+        <form id="filter-form" method="get">
             <input type="text" name="tech_model" placeholder="Модель техники">
             <input type="text" name="engine_model" placeholder="Модель двигателя">
             <input type="text" name="transmission_model" placeholder="Модель трансмиссии">
             <input type="text" name="drive_axle_model" placeholder="Модель ведущего моста">
             <input type="text" name="steering_axle_model" placeholder="Модель управляемого моста">
             <button type="submit">Фильтровать</button>
-            </form>
-            <thead>
-                <tr>
-                    <th><a href="?sort=factory_number">Зав. № машины</a></th>
-                    <th><a href="?sort=tech_model">Модель техники</a></th>
-                    <th><a href="?sort=engine_model">Модель двигателя</a></th>
-                    <th><a href="?sort=transmission_model">Модель трансмиссии</a></th>
-                    <th><a href="?sort=drive_axle_model">Модель ведущего моста</a></th>
-                    <th><a href="?sort=steering_axle_model">Модель управляемого моста</a></th>
-                    <th><a href="?sort=shipping_date">Дата отгрузки</a></th>
-                    <th><a href="?sort=client">Клиент</a></th>
-                    <th><a href="?sort=service_company">Сервисная компания</a></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for car in page_obj %}
-                    <tr onclick="location.href='{% url 'car_detail' car.id %}'">
-                        <td>{{ car.factory_number }}</td>
-                        <td>{{ car.tech_model }}</td>
-                        <td>{{ car.engine_model }}</td>
-                        <td>{{ car.transmission_model }}</td>
-                        <td>{{ car.drive_axle_model }}</td>
-                        <td>{{ car.steering_axle_model }}</td>
-                        <td>{{ car.shipping_date }}</td>
-                        <td>{{ car.client }}</td>
-                        <td>{{ car.service_company }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
+        </form>
+        <table>
+            {% include 'car_list.html' %}
         </table>
         {% include 'pagination.html' %}
     </div>
 
     <div id="maintenance" class="tab-content" style="display:none;">
         <h3>Техническое обслуживание</h3>
+        {% if can_add_maintenance %}
+            <a href="{% url 'create_maintenance' %}" class="button">Создать новое ТО</a>
+        {% endif %}
         <table>
             <form method="get">
             <input type="text" name="maintenance_type" placeholder="Вид ТО">
@@ -86,6 +65,9 @@
                         <td>{{ maintenance.order_number }}</td>
                         <td>{{ maintenance.order_date }}</td>
                         <td>{{ maintenance.maintenance_organization }}</td>
+                        {% if can_change_maintenance %}
+                            <td><a href="{% url 'edit_maintenance' maintenance.id %}">Редактировать</a></td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
             </tbody>
@@ -127,7 +109,12 @@
         </table>
         {% include 'pagination.html' %}
     </div>
-
+    {% if can_add_reference %}
+         <a href="{% url 'create_reference' %}" class="button">Добавить новую запись в справочник</a>
+    {% endif %}
+    {% if can_edit_reference %}
+         <a href="{% url 'edit_reference' %}" class="button">Изменить существующий справочник</a>
+    {% endif %}
     <script>
         function openTab(tabName) {
             var i, tabContent, tabButtons;
@@ -146,5 +133,36 @@
         }
         // Open the 'general' tab by default
         openTab('general');
-    </script>
+
+        <script>
+    $(document).ready(function() {
+        $('#filter-form').on('submit', function(event) {
+            event.preventDefault(); // Предотвращение перезагрузки страницы
+
+            $.ajax({
+                url: window.location.href, // Отправка формы на текущий URL
+                type: $(this).attr('method'),
+                data: $(this).serialize(),
+                success: function(data) {
+                    // Обновите содержимое таблицы с новыми данными
+                    $('#car-list').html($(data).find('#car-list').html());
+                }
+            });
+        });
+
+        $('#maintenance-filter-form').on('submit', function(event) {
+            event.preventDefault(); // Предотвращение перезагрузки страницы
+
+            $.ajax({
+                url: window.location.href, // Отправка формы на текущий URL
+                type: $(this).attr('method'),
+                data: $(this).serialize(),
+                success: function(data) {
+                    // Обновите содержимое таблицы с новыми данными
+                    $('#maintenance-list').html($(data).find('#maintenance-list').html());
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

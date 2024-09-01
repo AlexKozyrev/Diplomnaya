@@ -14,4 +14,12 @@ urlpatterns = [
     path('car/<int:car_id>/complaint/<int:complaint_id>/', views.complaint_detail, name='complaint_detail'),
     path('complaint/<int:complaint_id>/', views.complaint_details, name='complaint_details'),
     path('reference/<str:category>/<str:name>/', views.reference_detail, name='reference_detail'),
+    path('car/create/', views.create_car, name='create_car'),
+    path('car/edit/<int:pk>/', views.edit_car, name='edit_car'),
+    path('maintenance/create/', views.create_maintenance, name='create_maintenance'),
+    path('maintenance/edit/<int:pk>/', views.edit_maintenance, name='edit_maintenance'),
+    path('complaint/create/', views.create_complaint, name='create_complaint'),
+    path('complaint/edit/<int:pk>/', views.edit_complaint, name='edit_complaint'),
+    path('reference/create/', views.create_reference, name='create_reference'),
+    path('reference/edit/<int:pk>/', views.edit_reference, name='edit_reference'),
 ]

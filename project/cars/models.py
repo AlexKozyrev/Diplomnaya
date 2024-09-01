@@ -33,23 +33,28 @@ class Car(models.Model):
     engine_number = models.CharField(max_length=255, verbose_name="Зав. № двигателя")
     transmission_model = models.ForeignKey(Reference, on_delete=models.SET_NULL, null=True,
                                            related_name='car_transmission_models',
-                                           limit_choices_to={'category': 'Модель трансмиссии'}, verbose_name="Модель трансмиссии")
+                                           limit_choices_to={'category': 'Модель трансмиссии'},
+                                           verbose_name="Модель трансмиссии")
     transmission_number = models.CharField(max_length=255, verbose_name="Зав. № трансмиссии")
     drive_axle_model = models.ForeignKey(Reference, on_delete=models.SET_NULL, null=True,
                                          related_name='car_drive_axle_models',
-                                         limit_choices_to={'category': 'Модель ведущего моста'}, verbose_name="Модель ведущего моста")
+                                         limit_choices_to={'category': 'Модель ведущего моста'},
+                                         verbose_name="Модель ведущего моста")
     drive_axle_number = models.CharField(max_length=255, verbose_name="Зав. № ведущего моста")
     steering_axle_model = models.ForeignKey(Reference, on_delete=models.SET_NULL, null=True,
                                             related_name='car_steering_axle_models',
-                                            limit_choices_to={'category': 'Модель управляемого моста'}, verbose_name="Модель управляемого моста")
+                                            limit_choices_to={'category': 'Модель управляемого моста'},
+                                            verbose_name="Модель управляемого моста")
     steering_axle_number = models.CharField(max_length=255, verbose_name="Зав. № управляемого моста")
     supply_contract = models.CharField(max_length=255, verbose_name="Договор поставки №, дата")
     shipping_date = models.DateField(verbose_name="Дата отгрузки с завода")
     consignee = models.CharField(max_length=255, verbose_name="Грузополучатель (конечный потребитель)")
     delivery_address = models.CharField(max_length=255, verbose_name="Адрес поставки (эксплуатации)")
     equipment = models.TextField(verbose_name="Комплектация (доп. опции)")
-    client = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='client_cars', verbose_name="Клиент")
-    service_company = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='service_company_cars', verbose_name="Сервисная компания")
+    client = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='client_cars',
+                               verbose_name="Клиент")
+    service_company = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='service_company_cars',
+                                        verbose_name="Сервисная компания")
 
     def __str__(self):
         return f"Car {self.factory_number}"
@@ -65,7 +70,8 @@ class Maintenance(models.Model):
     order_date = models.DateField(verbose_name="Дата заказ-наряда")
     maintenance_organization = models.ForeignKey(Reference, on_delete=models.SET_NULL, null=True,
                                                  related_name='maintenance_organizations',
-                                                 limit_choices_to={'category': 'Организация, проводившая ТО'}, verbose_name="Организация, проводившая ТО")
+                                                 limit_choices_to={'category': 'Организация, проводившая ТО'},
+                                                 verbose_name="Организация, проводившая ТО")
     car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='maintenances', verbose_name="Машина")
     service_company = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,
                                         related_name='maintenance_service_companies', verbose_name="Сервисная компания")
@@ -82,7 +88,8 @@ class Complaint(models.Model):
     failure_description = models.TextField(verbose_name="Описание отказа")
     recovery_method = models.ForeignKey(Reference, on_delete=models.SET_NULL, null=True,
                                         related_name='recovery_methods',
-                                        limit_choices_to={'category': 'Способ восстановления'}, verbose_name="Способ восстановления")
+                                        limit_choices_to={'category': 'Способ восстановления'},
+                                        verbose_name="Способ восстановления")
     parts_used = models.TextField(verbose_name="Используемые запасные части")
     recovery_date = models.DateField(verbose_name="Дата восстановления")
     downtime = models.FloatField(verbose_name="Время простоя техники")
@@ -97,5 +104,3 @@ class Complaint(models.Model):
         if self.recovery_date and self.failure_date:
             self.downtime = (self.recovery_date - self.failure_date).days
         super().save(*args, **kwargs)
-
-
