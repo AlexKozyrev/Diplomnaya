@@ -3,12 +3,15 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required, permission_required
+from rest_framework import viewsets
 
 from .forms import CarForm, MaintenanceForm, ComplaintForm, ReferenceForm
 from .models import Car, Maintenance, Complaint, Reference
 from django.db.models import F
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import Http404
+
+from .serializers import CarSerializer, MaintenanceSerializer, ComplaintSerializer
 
 
 def home(request):
@@ -310,3 +313,18 @@ def edit_reference(request, pk):
     else:
         form = ReferenceForm(instance=reference)
     return render(request, 'create_edit_form.html', {'form': form})
+
+
+class CarViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Car.objects.all()
+    serializer_class = CarSerializer
+
+
+class MaintenanceViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Maintenance.objects.all()
+    serializer_class = MaintenanceSerializer
+
+
+class ComplaintViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Complaint.objects.all()
+    serializer_class = ComplaintSerializer

@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'cars',
+    'rest_framework',
+    'drf_yasg',
 ]
 
 SITE_ID = 1
